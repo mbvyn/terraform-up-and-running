@@ -59,14 +59,10 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 }
-
+# Partial configuration. The other settings (e.g. bucket, region) will be
+# passed in from a file via -backend-config arguments to 'terraform init'.
 terraform {
-    backend "s3" {
-    bucket = "mbvyn-terraform-state"
-    key    = "global/s3/terraform.tfstate"
-    region = "us-east-2"
-
-    dynamodb_table = "mbvyn-terraform-locks"
-    encrypt        = true
+  backend "s3" {
+    key = "global/s3/terraform.tfstate"
   }
 }
