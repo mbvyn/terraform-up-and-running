@@ -154,6 +154,11 @@ resource "aws_security_group" "alb" {
 
 terraform {
   backend "s3" {
-    key = "stage/services/webserver-cluster/terraform.tfstate"
+    bucket = "mbvyn-terraform-state"
+    key    = "stage/services/webserver-cluster/terraform.tfstate"
+    region = "us-east-2"
+
+    dynamodb_table = "mbvyn-terraform-locks"
+    encrypt        = true
   }
 }
