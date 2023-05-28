@@ -71,7 +71,7 @@ data "aws_subnets" "default" {
 
 resource "aws_lb" "example" {
 
-  name               = var.alb_name
+  name = var.alb_name
 
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default.ids
@@ -148,5 +148,12 @@ resource "aws_security_group" "alb" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+terraform {
+  backend "s3" {
+    key = "stage/services/webserver-cluster/terraform.tfstate"
   }
 }
