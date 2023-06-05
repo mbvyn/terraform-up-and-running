@@ -15,14 +15,15 @@ provider "aws" {
 
 module "webserver_cluster" {
 
-  source = "../../../modules/services/webserver-cluster"
+  source = "github.com/mbvyn/terraform-up-and-running//modules/services/webserver-cluster?ref=v0.0.1"
 
-  cluster_name           = "webserver-stage"
-  db_remote_state_bucket = "mbvyn-terraform-state-stage"
-  db_remote_state_key    = "prod/data-store/mysql/terraform.tfstate"
-  instance_type          = "t2.micro"
-  max_size               = 2
-  min_size               = 10
+  cluster_name           = var.cluster_name
+  db_remote_state_bucket = var.db_remote_state_bucket
+  db_remote_state_key    = var.db_remote_state_key
+
+  instance_type = "t2.micro"
+  min_size      = 2
+  max_size      = 2
 }
 
 resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
