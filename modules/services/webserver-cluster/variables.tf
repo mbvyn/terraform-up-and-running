@@ -17,7 +17,7 @@ variable "db_remote_state_bucket" {
 variable "db_remote_state_key" {
   description = "The path for the database's remote state in S3"
   type        = string
-  default     = "stage/data-store/mysql/terraform.tfstate"
+  default     = "stage/data-stores/mysql/terraform.tfstate"
 }
 
 variable "instance_type" {
