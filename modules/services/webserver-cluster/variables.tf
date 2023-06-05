@@ -6,7 +6,6 @@
 variable "cluster_name" {
   description = "The name to use for all the cluster resources"
   type        = string
-  default     = "webservers-stage"
 }
 
 variable "db_remote_state_bucket" {
@@ -18,7 +17,7 @@ variable "db_remote_state_bucket" {
 variable "db_remote_state_key" {
   description = "The path for the database's remote state in S3"
   type        = string
-  default     = "stage/data-store/mysql/terraform.tfstate"
+  default     = "stage/services/webserver-cluster/terraform.tfstate"
 }
 
 variable "instance_type" {
