@@ -40,6 +40,15 @@ resource "aws_autoscaling_group" "example" {
     value               = var.cluster_name
     propagate_at_launch = true
   }
+
+  dynamic "tag" {
+    for_each = var.custom_tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+  }
 }
 
 resource "aws_security_group" "instance" {
@@ -66,9 +75,9 @@ resource "aws_lb" "example" {
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.example.arn
 
-  port              = local.http_port
+  port = local.http_port
 
-  protocol          = "HTTP"
+  protocol = "HTTP"
 
   # By default, return a simple 404 page
   default_action {

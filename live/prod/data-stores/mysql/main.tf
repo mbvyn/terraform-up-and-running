@@ -15,7 +15,7 @@ terraform {
 
 terraform {
   backend "s3" {
-    bucket = "mbvyn-terraform-state-prod"
+    bucket = "mbvyn-terraform-state"
     key    = "prod/data-stores/mysql/terraform.tfstate"
     region = "us-east-2"
 
