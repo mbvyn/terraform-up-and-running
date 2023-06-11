@@ -52,7 +52,7 @@ variable "custom_tags" {
   default     = {}
 }
 
-variable "enabled_autoscaling" {
+variable "enable_autoscaling" {
   description = "If set to true, enabled auto scaling"
   type        = bool
 }

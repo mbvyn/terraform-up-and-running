@@ -43,7 +43,7 @@ resource "aws_autoscaling_group" "example" {
 
   dynamic "tag" {
     for_each = {
-      for key, value in var.custom_tags :
+      for key, value in var.custom_tags:
       key => upper(value)
       if key != "Name"
     }
@@ -54,6 +54,29 @@ resource "aws_autoscaling_group" "example" {
       propagate_at_launch = true
     }
   }
+
+}
+
+resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  scheduled_action_name  = "${var.cluster_name}-scale-out-during-business-hours"
+  min_size               = 2
+  max_size               = 10
+  desired_capacity       = 10
+  recurrence             = "0 9 * * *"
+  autoscaling_group_name = aws_autoscaling_group.example.name
+}
+
+resource "aws_autoscaling_schedule" "scale_in_at_night" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  scheduled_action_name  = "${var.cluster_name}-scale-in-at-night"
+  min_size               = 2
+  max_size               = 10
+  desired_capacity       = 2
+  recurrence             = "0 17 * * *"
+  autoscaling_group_name = aws_autoscaling_group.example.name
 }
 
 resource "aws_security_group" "instance" {
@@ -70,6 +93,17 @@ resource "aws_security_group_rule" "allow_server_http_inbound" {
   cidr_blocks = local.all_ips
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
 resource "aws_lb" "example" {
   name               = var.cluster_name
   load_balancer_type = "application"
@@ -79,10 +113,8 @@ resource "aws_lb" "example" {
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.example.arn
-
-  port = local.http_port
-
-  protocol = "HTTP"
+  port              = local.http_port
+  protocol          = "HTTP"
 
   # By default, return a simple 404 page
   default_action {
@@ -163,44 +195,46 @@ data "terraform_remote_state" "db" {
   }
 }
 
+resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
+  alarm_name  = "${var.cluster_name}-high-cpu-utilization"
+  namespace   = "AWS/EC2"
+  metric_name = "CPUUtilization"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.example.name
+  }
+
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  period              = 300
+  statistic           = "Average"
+  threshold           = 90
+  unit                = "Percent"
+}
+
+resource "aws_cloudwatch_metric_alarm" "low_cpu_credit_balance" {
+  count = format("%.1s", var.instance_type) == "t" ? 1 : 0
+
+  alarm_name = "${var.cluster_name}-low-cpu-credit-balance"
+  namespace   = "AWS/EC2"
+  metric_name = "CPUCreditBalance"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.example.name
+  }
+
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  period              = 300
+  statistic           = "Minimum"
+  threshold           = 10
+  unit                = "Count"
+}
+
 locals {
   http_port    = 80
   any_port     = 0
   any_protocol = "-1"
   tcp_protocol = "tcp"
   all_ips      = ["0.0.0.0/0"]
-}
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-
-resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
-  count = var.enabled_autoscaling ? 1 : 0
-
-  scheduled_action_name  = "${var.cluster_name}-scale-out-during-business-hours"
-  min_size               = 2
-  max_size               = 10
-  desired_capacity       = 10
-  recurrence             = "0 9 * * *"
-  autoscaling_group_name = aws_autoscaling_group.example.name
-}
-
-resource "aws_autoscaling_schedule" "scale_in_at_night" {
-  count = var.enabled_autoscaling ? 1 : 0
-
-  scheduled_action_name  = "${var.cluster_name}-scale-in-at-night"
-  min_size               = 2
-  max_size               = 10
-  desired_capacity       = 2
-  recurrence             = "0 17 * * *"
-  autoscaling_group_name = aws_autoscaling_group.example.name
 }
