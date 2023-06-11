@@ -29,5 +29,5 @@ module "webserver_cluster" {
     Owner     = "team-foo"
     ManagedBy = "terraform"
   }
-  enabled_autoscaling = true
+  enable_autoscaling = true
 }
